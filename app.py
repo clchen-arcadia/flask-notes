@@ -13,15 +13,16 @@ connect_db(app)
 
 @app.get("/")
 def show_register_page():
-    """ Show register page """
+    """ Currently just redirects to register page """
+
     return redirect("/register")
 
 
 @app.route("/register", methods=["GET", "POST"])
-def define_register():
-    """ 
-        On GET request: displays register form 
-        On POST route: Validates register form and upon validation, redirects to 
+def register_user():
+    """
+        On GET request: displays register form
+        On POST route: Validates register form and upon validation, redirects to
             secret. Else if not validated, shows form with error messages
     """
     # TODO: Create RegisterForm in forms.py
@@ -45,7 +46,7 @@ def define_register():
 def login_user():
     """
         On GET request: displays the login form
-        On POST request: Upon validation and authentication, redirects to 
+        On POST request: Upon validation and authentication, redirects to
             route /secret.
             If not validated, render login form with error message.
     """
