@@ -37,7 +37,14 @@ class User(db.Model):
 
     # register class method
     @classmethod
-    def register(cls, username, password):
+    def register(
+        cls,
+        username,
+        password,
+        email,
+        first_name,
+        last_name
+    ):
         """
         Registers new user using Bcrypt.
         Function always returns User instances of newly created user.
@@ -45,7 +52,13 @@ class User(db.Model):
 
         hashed = bcrypt.generate_password_hash(password).decode('utf8')
 
-        return cls(username=username, password=hashed)
+        return cls(
+            username=username,
+            password=hashed,
+            email=email,
+            first_name=first_name,
+            last_name=last_name
+            )
 
     @classmethod
     def authenticate(cls, username, password):
