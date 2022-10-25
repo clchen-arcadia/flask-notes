@@ -22,14 +22,12 @@ class User(db.Model):
 
     username = db.Column(
         db.String(20),
-        primary_key=True,
-        nullable=False,
-        unique=True
+        primary_key=True
     )
 
     password = db.Column(db.String(100), nullable=False)
 
-    email = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(50), nullable=False, unique=True)
 
     first_name = db.Column(db.String(30), nullable=False)
 
@@ -58,7 +56,7 @@ class User(db.Model):
             email=email,
             first_name=first_name,
             last_name=last_name
-            )
+        )
 
     @classmethod
     def authenticate(cls, username, password):

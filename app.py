@@ -8,7 +8,7 @@ from flask import (
     flash
 )
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy import null
+# from sqlalchemy import null
 from models import db, connect_db, User
 from forms import RegisterForm, LoginForm, CSRFProtectForm
 
@@ -93,6 +93,9 @@ def login_user():
 
 @app.get("/users/<username>")
 def show_secret_page(username):
+    """ Display user details
+        If user_id in session is not in the url, redirect to home page
+     """
     form = CSRFProtectForm()
 
     if session.get("user_id") != username:
@@ -111,12 +114,14 @@ def show_secret_page(username):
 
 @app.post("/logout")
 def logout_user():
+    """ Clear information from session and redirect user """
 
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
         session.pop("user_id", None)
 
+    # TODO: Message of warning and taking them out
     return redirect("/")
 
 # Questions:
