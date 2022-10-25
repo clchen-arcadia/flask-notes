@@ -25,7 +25,6 @@ def register_user():
         On POST route: Validates register form and upon validation, redirects to
             secret. Else if not validated, shows form with error messages
     """
-    # TODO: Create RegisterForm in forms.py
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -50,7 +49,6 @@ def login_user():
             route /secret.
             If not validated, render login form with error message.
     """
-    # TODO: Create LoginForm in forms.py
     form = LoginForm()
 
     if form.validate_on_submit():
