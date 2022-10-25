@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import (
     StringField,
-    PasswordField
+    PasswordField,
+    HiddenField
 )
 from wtforms.validators import (
     InputRequired,
@@ -38,3 +39,9 @@ class CSRFProtectForm(FlaskForm):
     """Form just for CSRF Protection"""
 
 
+class AddNoteForm(FlaskForm):
+    """ Form for adding a new note """
+
+    title = StringField("Title", validators=[InputRequired(), Length(max=100)])
+    content = StringField("Content", validators=[InputRequired()])
+    owner = HiddenField("Username")

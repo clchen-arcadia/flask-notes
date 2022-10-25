@@ -9,7 +9,7 @@ from flask import (
 )
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User, Note
-from forms import RegisterForm, LoginForm, CSRFProtectForm
+from forms import RegisterForm, LoginForm, CSRFProtectForm, AddNoteForm
 from werkzeug.exceptions import Unauthorized
 
 app = Flask(__name__)
@@ -98,7 +98,7 @@ def show_secret_page(username):
         Display user details
         If user_id in session is not in the url, redirect to home page
      """
-     #TODO: create link to send to add note form. and a button to delete the entire acct! and buttons to delete each note!
+    # TODO: create link to send to add note form. and a button to delete the entire acct! and buttons to delete each note!
 
     form = CSRFProtectForm()
 
@@ -142,6 +142,16 @@ def delete_user(username):
         Function then redirects to '/'
     """
 
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        user = User.query.get_or_404(username)
+        db.session.delete(user)
+        db.session.commit()
+        return redirect("/")
+    else:
+        raise Unauthorized()
+
 
 @app.route('/users/<username>/notes/add', methods=["GET", "POST"])
 def new_note(username):
@@ -150,17 +160,49 @@ def new_note(username):
     On POST: on validated submission, adds note and redirects to user's page
     """
 
+    if session.get("user_id") != username:
+        raise Unauthorized()
+
+    # form = AddNoteForm(owner=username)
+
+    form = AddNoteForm()
+
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+        owner = username
+
+        note = Note(title=title, content=content, owner=owner)
+
+        db.session.add(note)
+        db.session.commit()
+
+        return redirect(f"/users/{username}")
+    else:
+        return render_template("add_note_form.html", form=form, username=username)
+
+
 @app.route('/notes/<note_id>/update', methods=["GET", "POST"])
 def edit_note(note_id):
     """
     On GET: displays a form to edit an existing note
     On POST: on validated submission, edits note and redirects to user's page
     """
-    #TODO: check session that user has authorization to edit this note!
+    # TODO: check session that user has authorization to edit this note!
+
 
 @app.post('/notes/<note_id>/delete')
 def delete_note(note_id):
     """
     Deletes a note from the database. Redirects to the user's page
     """
-    #TODO: check session that user has authorization to delete this note!
+    # TODO: check session that user has authorization to delete this note!
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        note = Note.query.get_or_404(note_id)
+        db.session.delete(note)
+        db.session.commit()
+        return redirect(f"/users/{note.owner}")
+    else:
+        raise Unauthorized()

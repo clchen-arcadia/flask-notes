@@ -19,10 +19,16 @@ content %}
   {% for note in notes %}
   <li>
     <b>{{ note.title }}</b>
-    <br>
+    <br />
     {{ note.content }}
   </li>
+  <form action="/notes/{{note.id}}/delete" method="POST">
+    {{form.hidden_tag()}}
+    <button type="submit" class="btn btn-primary">Delete Note</button>
+  </form>
   {% endfor %}
 </ul>
+
+<a href="/users/{{user.username}}/notes/add">Add Note</a>
 
 {% endblock %}
