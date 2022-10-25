@@ -41,14 +41,14 @@ def register_user():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        name = form.username.data
+        username = form.username.data
         password = form.password.data
         email = form.email.data
         first_name = form.first_name.data
         last_name = form.last_name.data
 
         user = User.register(
-            username=name,
+            username=username,
             password=password,
             email=email,
             first_name=first_name,
@@ -61,7 +61,7 @@ def register_user():
         session["user_id"] = user.username
 
         # flash messages
-        return redirect("/secret")
+        return redirect(f"/users/{username}")
     else:
         return render_template("register.html", form=form)
 
@@ -71,7 +71,7 @@ def login_user():
     """
         On GET request: displays the login form
         On POST request: Upon validation and authentication, redirects to
-            route /secret.
+            route /users/username.
             If not validated, render login form with error message.
     """
     form = LoginForm()
@@ -84,7 +84,7 @@ def login_user():
 
         if user:
             session["user_id"] = user.username
-            return redirect("/secret")
+            return redirect(f"/users/{username}")
         else:
             form.username.errors = ["Bad name/password"]
 
@@ -93,7 +93,9 @@ def login_user():
 
 @app.get("/users/<username>")
 def show_secret_page(username):
-    if session.get("user_id")!= username:
+    form = CSRFProtectForm()
+
+    if session.get("user_id") != username:
         flash("You must be logged in to view!")
         return redirect("/")
 
@@ -104,4 +106,18 @@ def show_secret_page(username):
 
     else:
         user = User.query.filter_by(username=username).one_or_none()
-        return render_template("user_page.html", user=user)
+        return render_template("user_page.html", user=user, form=form)
+
+
+@app.post("/logout")
+def logout_user():
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop("user_id", None)
+
+    return redirect("/")
+
+# Questions:
+#
