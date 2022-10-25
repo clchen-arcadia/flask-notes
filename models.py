@@ -33,7 +33,6 @@ class User(db.Model):
 
     last_name = db.Column(db.String(30), nullable=False)
 
-    # register class method
     @classmethod
     def register(
         cls,
@@ -63,13 +62,39 @@ class User(db.Model):
         """
         Logs in user using Bcrypt.
         Function returns the user object if login successful,
-            if not, function returns None
+            if not, function returns False
         """
 
         u = cls.query.filter_by(username=username).one_or_none()
 
         if u and bcrypt.check_password_hash(u.password, password):
-            # return user instance
             return u
         else:
             return False
+
+class Note(db.Model):
+    """Note on web app"""
+
+    __tablename__ = "notes"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    title = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    content = db.Column(
+        db.String,
+        nullable=False
+    )
+
+    owner = db.Column(
+        db.String,
+        db.ForeignKey("users.username"),
+        nullable=False
+    )

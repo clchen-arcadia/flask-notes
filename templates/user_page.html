@@ -15,4 +15,14 @@ content %}
   <button type="submit" class="btn btn-primary">Logout</button>
 </form>
 
+<ul>
+  {% for note in notes %}
+  <li>
+    <b>{{ note.title }}</b>
+    <br>
+    {{ note.content }}
+  </li>
+  {% endfor %}
+</ul>
+
 {% endblock %}
