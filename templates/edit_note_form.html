@@ -1,0 +1,30 @@
+{% extends "base.html" %} {% block title %} Edit Note Form {% endblock %} {%
+  block content %}
+
+  <h1 class="display-4">Edit Note Form</h1>
+  <p class="lead">Edit Note for {{username}}</p>
+
+  <form method="POST">
+    {{ form.hidden_tag() }} {% for field in form if field.widget.input_type !=
+    'hidden' %}
+    <p>
+      {{ field.label }} {{ field }} {% for error in field.errors %} {{ error }} {%
+      endfor %}
+    </p>
+    {% endfor %}
+
+    <button type="submit">Edit Note</button>
+  </form>
+  <a href="/users/{{username}}" class="btn btn-primary">Cancel</a>
+
+  {% endblock %}
+
+  <!-- group similar .html by name!
+    note_edit_form
+    note_add_form
+
+    user_
+    user_ etc
+
+    take advantage of sorting and naming!
+  -->

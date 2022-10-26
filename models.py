@@ -93,7 +93,7 @@ class Note(db.Model):
         nullable=False
     )
 
-    owner = db.Column(
+    owner = db.Column( #owner_username (because this is not a db.Relationship!)
         db.String,
         db.ForeignKey("users.username"),
         nullable=False

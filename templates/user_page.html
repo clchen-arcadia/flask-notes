@@ -11,8 +11,15 @@ content %}
 </ul>
 
 <form action="/logout" method="POST">
-  {{form.hidden_tag()}}
+  {{ form.hidden_tag() }}
   <button type="submit" class="btn btn-primary">Logout</button>
+</form>
+
+<br>
+
+<form action="/users/{{ user.username }}/delete" method="POST">
+  {{ form.hidden_tag() }}
+  <button type="submit" class="btn btn-danger">DELETE USER</button>
 </form>
 
 <ul>
@@ -26,6 +33,7 @@ content %}
     {{form.hidden_tag()}}
     <button type="submit" class="btn btn-primary">Delete Note</button>
   </form>
+  <a href="/notes/{{ note.id }}/update"><button>Edit Note</button></a>
   {% endfor %}
 </ul>
 

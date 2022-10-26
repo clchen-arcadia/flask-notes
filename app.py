@@ -9,7 +9,7 @@ from flask import (
 )
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User, Note
-from forms import RegisterForm, LoginForm, CSRFProtectForm, AddNoteForm
+from forms import RegisterForm, LoginForm, CSRFProtectForm, AddNoteForm, EditNoteForm
 from werkzeug.exceptions import Unauthorized
 
 app = Flask(__name__)
@@ -30,6 +30,7 @@ def show_register_page():
 
     return redirect("/register")
 
+################ ROUTES FOR USERS ##############
 
 @app.route("/register", methods=["GET", "POST"])
 def register_user():
@@ -93,29 +94,29 @@ def login_user():
 
 
 @app.get("/users/<username>")
-def show_secret_page(username):
+def show_user_page(username):
     """
         Display user details
         If user_id in session is not in the url, redirect to home page
      """
-    # TODO: create link to send to add note form. and a button to delete the entire acct! and buttons to delete each note!
 
-    form = CSRFProtectForm()
-
-    notes = Note.query.filter_by(owner=username).all()
-
-    if session.get("user_id") != username:
+    if session.get("user_id") != username: #"guard fn" do it first
         flash("You must be logged in to view!")
         return redirect("/")
 
-    else:
-        user = User.query.filter_by(username=username).one_or_none()
-        return render_template(
-            "user_page.html",
-            user=user,
-            form=form,
-            notes=notes
-        )
+    form = CSRFProtectForm()
+
+    user = User.query.filter_by(username=username).one_or_none()
+
+    # a mild optimization to create db.Relationship and say notes = user.notes
+    notes = Note.query.filter_by(owner=username).order_by("id").all()
+
+    return render_template(
+        "user_page.html",
+        user=user,
+        form=form,
+        notes=notes
+    )
 
 
 @app.post("/logout")
@@ -131,26 +132,31 @@ def logout_user():
     else:
         raise Unauthorized()
 
-
-############## Routes for Notes ######################
-
-@app.post('/users/<username>/delete')
+@app.post("/users/<username>/delete")
 def delete_user(username):
-    """
-    Deletes a user from the database
-        after deleting all of their notes first!
-        Function then redirects to '/'
-    """
+    """Deletes current user, by deleting their notes first!"""
+
+    if session.get("user_id") != username:
+        raise Unauthorized()
 
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
-        user = User.query.get_or_404(username)
-        db.session.delete(user)
+        Note.query.filter_by(owner=username).delete()
+        db.session.commit() #unnecessary!
+
+        user = User.query.filter_by(username=username).one_or_none() #prefer one() here
+        #one_or_none() is relevant and useful only if u DO SOMETHING with None when it is None
+        db.session.delete(user) #altho error for .delete(None) anyway!
         db.session.commit()
+
         return redirect("/")
+
     else:
         raise Unauthorized()
+
+
+############## Routes for Notes ######################
 
 
 @app.route('/users/<username>/notes/add', methods=["GET", "POST"])
@@ -162,8 +168,6 @@ def new_note(username):
 
     if session.get("user_id") != username:
         raise Unauthorized()
-
-    # form = AddNoteForm(owner=username)
 
     form = AddNoteForm()
 
@@ -182,13 +186,35 @@ def new_note(username):
         return render_template("add_note_form.html", form=form, username=username)
 
 
-@app.route('/notes/<note_id>/update', methods=["GET", "POST"])
+@app.route('/notes/<int:note_id>/update', methods=["GET", "POST"]) #TODO:check int: elsewhere
 def edit_note(note_id):
     """
     On GET: displays a form to edit an existing note
     On POST: on validated submission, edits note and redirects to user's page
     """
-    # TODO: check session that user has authorization to edit this note!
+
+    note = Note.query.get_or_404(note_id)#SQLAlchemy doing friendly forcing here
+    username = note.owner
+
+    if session.get("user_id") != username:
+        raise Unauthorized()
+
+    form = EditNoteForm(obj=note)
+
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+
+        note.title = title
+        note.content = content
+
+        db.session.commit()
+
+
+        return redirect(f'/users/{note.owner}')
+
+    else:
+        return render_template("edit_note_form.html", form=form, username=username)
 
 
 @app.post('/notes/<note_id>/delete')
@@ -196,11 +222,17 @@ def delete_note(note_id):
     """
     Deletes a note from the database. Redirects to the user's page
     """
-    # TODO: check session that user has authorization to delete this note!
+
+    note = Note.query.get_or_404(note_id)
+    username = note.owner #This is where name "owner" complicates
+    #what if this read user = note.owner ??
+
+    if session.get("user_id") != username:
+        raise Unauthorized()
+
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
-        note = Note.query.get_or_404(note_id)
         db.session.delete(note)
         db.session.commit()
         return redirect(f"/users/{note.owner}")

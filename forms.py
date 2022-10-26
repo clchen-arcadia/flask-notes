@@ -45,3 +45,9 @@ class AddNoteForm(FlaskForm):
     title = StringField("Title", validators=[InputRequired(), Length(max=100)])
     content = StringField("Content", validators=[InputRequired()])
     owner = HiddenField("Username")
+
+class EditNoteForm(FlaskForm):
+    """Form for editing an existing note"""
+
+    title = StringField("Title", validators=[InputRequired(), Length(max=100)])
+    content = StringField("Content", validators=[InputRequired()]) #TODO:TextArea
